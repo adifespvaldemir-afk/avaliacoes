@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Material dos Alunos - INTRODUÇÃO AOS PROCESSOS DE FABRICAÇÃO</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f9fafb; color: #374151; line-height: 1.6; }
+        .container { max-width: 64rem; margin: 0 auto; padding: 2rem; }
+        .header { text-align: center; margin-bottom: 3rem; padding-bottom: 2rem; border-bottom: 4px solid #2563eb; }
+        .header h1 { font-size: 2.5rem; font-weight: bold; color: #1f2937; }
+        .header p { font-size: 1.125rem; color: #6b7280; margin-top: 0.5rem; }
+        .section { background: white; padding: 2rem; border-radius: 0.5rem; box-shadow: 0 1px 3px rgba(0,0,0,0.1); margin-bottom: 2rem; }
+        .section-header { display: flex; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem; }
+        .section-number { width: 3rem; height: 3rem; background: #2563eb; color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.125rem; flex-shrink: 0; }
+        .section-title { font-size: 1.5rem; font-weight: bold; color: #1d4ed8; margin-top: 0.5rem; }
+        .section-content { margin-left: 4rem; font-size: 1.125rem;}
+        .section-content ul { list-style: disc; padding-left: 1.5rem; }
+        .section-content li { margin-bottom: 0.75rem; }
+        .modal { display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); align-items: center; justify-content: center; z-index: 1000; }
+        .modal-content { background: white; padding: 2rem; border-radius: 0.5rem; max-width: 400px; text-align: center; }
+        .modal input { width: 100%; padding: 0.75rem; margin-top: 1rem; border: 1px solid #d1d5db; border-radius: 0.375rem; font-size: 1rem; }
+        .modal button { background: #2563eb; color: white; padding: 0.75rem 1.5rem; border: none; border-radius: 0.375rem; cursor: pointer; margin-top: 1rem; }
+        .modal button:hover { background: #1d4ed8; }
+        .student-info { margin-bottom: 1rem; font-weight: bold; color: #1f2937; }
+        .memory-game-controls { display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; }
+        .game-stats { font-size: 0.875rem; color: #6b7280; }
+        .restart-btn { background: #f3f4f6; border: 1px solid #d1d5db; padding: 0.5rem 1rem; border-radius: 0.375rem; cursor: pointer; font-size: 0.875rem; }
+        .restart-btn:hover { background: #e5e7eb; }
+        .memory-game-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 0.75rem; margin-bottom: 1rem; }
+        .memory-card { height: 6rem; border-radius: 0.5rem; cursor: pointer; transition: all 0.3s ease; display: flex; align-items: center; justify-content: center; padding: 0.5rem; text-align: center; border: 2px solid transparent; }
+        .memory-card.hidden { background: #e5e7eb; border-color: #d1d5db; }
+        .memory-card.hidden:hover { background: #d1d5db; }
+        .memory-card.flipped-term { background: #dbeafe; border-color: #3b82f6; color: #1e40af; font-weight: 600; }
+        .memory-card.flipped-definition { background: #ede9fe; border-color: #8b5cf6; color: #6b21a8; font-weight: 600; }
+        .memory-card.matched { background: #dcfce7; border-color: #16a34a; color: #15803d; font-weight: 600; }
+        .card-content { font-size: 0.75rem; overflow: hidden; }
+        .game-complete { display: none; background: #dcfce7; border: 1px solid #16a34a; padding: 1rem; border-radius: 0.5rem; text-align: center; color: #15803d; font-weight: 600; margin-bottom: 1.5rem; }
+        .quiz-question { background: #f9fafb; padding: 1.5rem; border-radius: 0.5rem; border: 1px solid #e5e7eb; margin-bottom: 1.5rem; }
+        .quiz-question h4 { font-weight: 600; font-size: 1.125rem; color: #1f2937; margin-bottom: 1rem; }
+        .quiz-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 0.75rem; margin-bottom: 1.5rem; }
+        .quiz-option { display: flex; align-items: center; gap: 0.75rem; padding: 0.75rem; background: white; border-radius: 0.375rem; border: 1px solid #d1d5db; cursor: pointer; transition: all 0.3s ease; }
+        .quiz-option:hover:not(:disabled) { background: #f3f4f6; }
+        .quiz-option.correct { background: #dcfce7; border-color: #16a34a; color: #15803d; }
+        .quiz-option.incorrect { background: #fef2f2; border-color: #ef4444; color: #dc2626; }
+        .quiz-option.correct-answer { background: #dbeafe; border-color: #3b82f6; color: #1e40af; }
+        .quiz-option.disabled { background: #f9fafb; color: #9ca3af; cursor: not-allowed; }
+        .quiz-option-letter { width: 1.5rem; height: 1.5rem; border: 2px solid #d1d5db; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.875rem; font-weight: bold; color: #6b7280; }
+        .explanation { display: none; margin-top: 1rem; padding: 1rem; background: #eff6ff; border-left: 4px solid #3b82f6; border-radius: 0.375rem; color: #1e40af;}
+        .explanation p { margin: 0; }
+        .report-section { text-align: center; margin-top: 3rem; }
+        .report-button { display: none; background: #16a34a; color: white; padding: 1rem 2rem; border: none; border-radius: 0.5rem; cursor: pointer; font-size: 1.125rem; font-weight: bold; }
+        .report-button:hover { background: #15803d; }
+        .report-section p { margin-top: 1rem; font-size: 0.875rem; color: #6b7280; }
+        @media print { .container { margin: 1cm; } .memory-game-section { page-break-inside: avoid; } .modal { display: none !important; } #report-button-desc { display: none !important; } .report-button { display: block !important; } }
+    </style>
+</head>
+<body>
+    <script id="app-data" type="application/json">
+        {"title":"INTRODUÇÃO AOS PROCESSOS DE FABRICAÇÃO","sections":[{"title":"Introdução e Definição","content":"Os processos de fabricação são métodos essenciais para transformar matérias-primas em produtos acabados com formas, dimensões e propriedades específicas. Eles são a base da produção industrial moderna e a escolha do processo depende do material, geometria desejada, propriedades mecânicas, custo e escala de produção."},{"title":"Critérios de Classificação","content":"A diversidade de métodos na indústria justifica a classificação dos processos. Os principais critérios incluem: tipo de processo (técnica de moldagem), tipo de energia envolvida (mecânica, térmica ou mista), temperatura de trabalho (ambiente, elevada ou intermediária) e tensão de trabalho (deformação plástica ou remoção de material)."},{"title":"As Cinco Famílias Básicas de Processos","content":"Os processos de fabricação mais comuns são agrupados em cinco grandes famílias: Conformação Mecânica (altera forma sem remover matéria), Fundição (moldagem de material líquido), Soldagem (união permanente por calor), Metalurgia do Pó (compactação e sinterização de pós) e Usinagem (remoção de material por corte)."},{"title":"Usinagem: Com e Sem Remoção de Cavaco","content":"A usinagem pode remover material (com cavaco), como torneamento e fresamento, ou modificar a peça sem remoção significativa (sem cavaco), usando energia física, química ou eletromagnética, como eletroerosão e jato abrasivo. Processos convencionais incluem torneamento, fresamento e furação, enquanto os não convencionais, como jato d'água e laser, são para alta precisão e materiais especiais."},{"title":"Fundição: Formando Peças a Partir do Metal Líquido","content":"A fundição é um processo antigo onde o metal é aquecido até o estado líquido e vertido em moldes. As técnicas incluem fundição em areia, sob pressão e em coquilha. Permite a fabricação de peças complexas e em grandes quantidades, sendo comum em indústrias como a automotiva e da construção."},{"title":"Soldagem: União de Componentes por Fusão","content":"A soldagem é fundamental para a montagem de estruturas metálicas, unindo permanentemente partes por aplicação de calor. Tipos comuns incluem soldagem por arco elétrico (MIG, TIG), por resistência elétrica (calor gerado pela corrente) e por fricção ou ultrassom (calor gerado por atrito/vibração)."},{"title":"Trabalho a Frio e Trabalho a Quente","content":"Processos podem ser realizados a frio (abaixo da temperatura de recristalização), aumentando a resistência mecânica mas reduzindo a ductilidade (ex: laminação a frio), ou a quente (acima da temperatura de recristalização), permitindo maiores deformações com menor esforço e mantendo boa resistência (ex: forjamento a quente)."},{"title":"Classificação pela Energia e Tensão de Trabalho","content":"Os processos são classificados pela energia envolvida (mecânica, metalúrgica/térmica, intermediária) e pela tensão de trabalho. A deformação plástica ocorre quando a tensão é menor que a de ruptura, mantendo a integridade do material (ex: forjamento). A remoção metálica ocorre quando a tensão supera a de ruptura, separando o material (ex: usinagem)."}],"summary":{"title":"Principais Pontos Sobre Processos de Fabricação","key_points":["Processos de fabricação transformam matérias-primas em produtos acabados, sendo classificados por critérios como tipo, energia, temperatura e tensão de trabalho.","As cinco famílias básicas de processos são: Conformação Mecânica, Fundição, Soldagem, Metalurgia do Pó e Usinagem.","Usinagem pode envolver remoção de material (com cavaco) ou ser não convencional (sem cavaco), enquanto fundição molda metal líquido e soldagem une componentes por fusão.","O trabalho pode ser a frio (aumenta resistência, reduz ductilidade) ou a quente (permite grandes deformações, mantém boa resistência)."]},"memory_game":{"title":"Termos Chave dos Processos de Fabricação","pairs":[{"term":"Conformação Mecânica","definition":"Altera a forma do material por meio de esforços mecânicos aplicados, sem remover matéria."},{"term":"Fundição","definition":"Consiste em fundir o material metálico e moldá-lo no estado líquido dentro de um molde."},{"term":"Usinagem","definition":"Envolve a remoção de material por ferramentas de corte, a fim de alcançar a forma desejada."},{"term":"Soldagem","definition":"Realiza a união permanente entre dois ou mais componentes metálicos por aquecimento localizado."},{"term":"Metalurgia do Pó","definition":"Forma peças compactando pós metálicos e sinterizando-os sob temperatura controlada."},{"term":"Cavaco","definition":"Fragmento ou porção de material com forma geométrica irregular retirado da peça pela ferramenta em operações de corte."}]},"bibliography":"CHAVES, A. P. Tecnologia da Fabricação Mecânica. Edgard Blücher, 2010. AMARAL, D. C. Processos de Fabricação. Pearson Education, 2014. FERREIRA, S. L. Fundamentos dos Processos de Fabricação. LTC, 2016. KALPAKJIAN, S.; SCHMID, S. Manufacturing Processes for Engineering Materials. Pearson, 2013.","quiz":[{"question":"Na usinagem com remoção de cavaco, o que é um \"cavaco\"?","options":["Uma ferramenta de corte.","O material fundido na peça.","Um fragmento ou porção de material retirado da peça pela ferramenta.","Um tipo de lubrificante."],"correct_answer":2,"explanation":"O cavaco é o resíduo gerado durante a usinagem com remoção de material, como no torneamento ou fresamento, sendo um fragmento da peça que é cortado e removido."},{"question":"Qual dos processos de fabricação básicos consiste em fundir o material metálico e moldá-lo no estado líquido dentro de um molde?","options":["Conformação mecânica.","Soldagem.","Metalurgia do pó.","Fundição."],"correct_answer":3,"explanation":"A fundição é o processo que envolve aquecer o metal até o estado líquido e vertê-lo em um molde, onde se solidifica para formar a peça desejada."},{"question":"Uma característica do \"trabalho a frio\" em processos de fabricação é:","options":["O material é aquecido acima da temperatura de recristalização.","Aumento da ductilidade do material.","Aumento da resistência mecânica e redução da ductilidade.","Menor força necessária para deformação."],"correct_answer":2,"explanation":"O trabalho a frio, por ser realizado abaixo da temperatura de recristalização, resulta em um aumento da resistência mecânica do material, mas, como contrapartida, há uma redução em sua ductilidade."},{"question":"De acordo com os critérios de classificação dos processos de fabricação, qual critério distingue os processos com base na fonte de energia predominante (mecânica, térmica ou mista)?","options":["Tipos de processos.","Temperatura de trabalho.","Tipo de energia envolvida.","Tensão de trabalho."],"correct_answer":2,"explanation":"O critério de classificação 'Tipo de energia envolvida' é o que diferencia os processos conforme a principal fonte de energia utilizada, seja ela mecânica, térmica ou uma combinação de ambas."},{"question":"Qual a principal característica da conformação mecânica?","options":["Remoção de material por ferramentas de corte.","União permanente de componentes metálicos.","Alteração da forma do material por esforços mecânicos, sem remover matéria.","Formação de peças compactando pós metálicos."],"correct_answer":2,"explanation":"A conformação mecânica é um processo que modifica a forma do material através da aplicação de esforços mecânicos, sem que haja remoção substancial de material."}],"practical_activity":{"title":"Analisando Produtos: Processos de Fabricação em Ação","description":"Nesta atividade, os alunos irão aplicar os conhecimentos adquiridos sobre os processos de fabricação para analisar um produto do dia a dia, identificando quais tipos de processos podem ter sido utilizados em sua manufatura.","instructions":"1. Escolha um objeto comum ao seu redor (ex: uma caneta, uma colher, um clipe de papel, um brinquedo simples).\n2. Observe atentamente o objeto e suas características (forma, material, união de partes).\n3. Com base nas cinco famílias básicas de processos de fabricação (conformação mecânica, fundição, soldagem, metalurgia do pó, usinagem), tente identificar pelo menos dois processos que podem ter sido utilizados para fabricar as diferentes partes ou o objeto como um todo.\n4. Explique brevemente o porquê você acredita que esses processos foram utilizados, relacionando com as características do objeto (ex: \"A parte metálica da caneta parece ter sido conformada por extrusão devido à sua forma cilíndrica e contínua\").\n5. Se possível, pesquise sobre o processo de fabricação real do objeto escolhido para comparar suas hipóteses.","expected_outcome":"Os alunos serão capazes de relacionar os conceitos teóricos dos processos de fabricação com objetos reais, desenvolvendo a capacidade de análise e aplicação prática do conhecimento. Eles deverão apresentar suas hipóteses e justificativas de forma clara."}}
+    </script>
+    
+    <script>
+        // Global variables
+        const APP_DATA = JSON.parse(document.getElementById('app-data').textContent);
+        let studentName = '';
+        let studentId = '';
+        let gameStartTime = null;
+        let gameEndTime = null;
+        let quizAnswers = {};
+        let quizScore = 0;
+        let shuffledQuizData = [];
+
+        function escapeClientHtml(text) {
+            if (typeof text !== 'string') return text;
+            var map = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;' };
+            return text.replace(/[&<>"']/g, function(m) { return map[m]; });
+        }
+
+        function showNameModal() {
+            document.getElementById('name-modal').style.display = 'flex';
+        }
+
+        function startGame() {
+            const nameInput = document.getElementById('student-name');
+            const idInput = document.getElementById('student-id');
+            if (!nameInput.value.trim() || !idInput.value.trim()) {
+                alert('Por favor, digite seu nome e registro de aluno para continuar.');
+                return;
+            }
+            studentName = nameInput.value.trim();
+            studentId = idInput.value.trim();
+            document.getElementById('name-modal').style.display = 'none';
+            const studentDisplay = document.getElementById('student-display');
+            if (studentDisplay) {
+                studentDisplay.textContent = studentName + ' (RA: ' + studentId + ')';
+            }
+            if (document.getElementById('memory-game-container')) {
+                gameStartTime = new Date();
+                initializeMemoryGame();
+            }
+            if (APP_DATA.quiz && APP_DATA.quiz.length > 0) {
+                initializeQuiz();
+            }
+        }
+
+        function shuffleArray(array) {
+            let currentIndex = array.length, randomIndex;
+            while (currentIndex !== 0) {
+                randomIndex = Math.floor(Math.random() * currentIndex);
+                currentIndex--;
+                [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+            }
+            return array;
+        }
+
+        function initializeQuiz() {
+            const originalQuizData = APP_DATA.quiz;
+            let shuffledQuestions = shuffleArray([...originalQuizData]);
+            shuffledQuestions = shuffledQuestions.map(q => {
+                const correctAnswerText = q.options[q.correct_answer];
+                const shuffledOptions = shuffleArray([...q.options]);
+                const newCorrectAnswerIndex = shuffledOptions.indexOf(correctAnswerText);
+                return { ...q, options: shuffledOptions, correct_answer: newCorrectAnswerIndex };
+            });
+            shuffledQuizData = shuffledQuestions;
+            const quizContainer = document.getElementById('quiz-container');
+            if(quizContainer){
+                quizContainer.innerHTML = shuffledQuizData.map((item, index) => {
+                    const optionsHtml = item.options.map((option, optionIndex) =>
+                        '<button class="quiz-option" onclick="answerQuiz(' + index + ', ' + optionIndex + ')">' +
+                        '<span class="quiz-option-letter">' + String.fromCharCode(65 + optionIndex) + '</span>' +
+                        '<span>' + escapeClientHtml(option) + '</span>' +
+                        '</button>'
+                    ).join('');
+                    return '<div class="quiz-question" id="question-' + index + '">' +
+                        '<h4>' + (index + 1) + '. ' + escapeClientHtml(item.question) + '</h4>' +
+                        '<div class="quiz-options">' + optionsHtml + '</div>' +
+                        '<div class="explanation"><p><strong>Explicação:</strong> ' + escapeClientHtml(item.explanation || 'N/A') + '</p></div>' +
+                        '</div>';
+                }).join('');
+            }
+        }
+
+        function initializeMemoryGame() {
+            const gameData = APP_DATA.memory_game;
+            if (!gameData || !gameData.pairs) return;
+            const gameCards = [];
+            gameData.pairs.forEach((pair, index) => {
+                gameCards.push({ id: 'term-' + index, content: pair.term, type: 'term', pairId: index, isFlipped: false, isMatched: false });
+                gameCards.push({ id: 'definition-' + index, content: pair.definition, type: 'definition', pairId: index, isFlipped: false, isMatched: false });
+            });
+            let shuffledCards = shuffleArray(gameCards);
+            let flippedCards = [];
+            let matchedPairs = [];
+            let moves = 0;
+            
+            function renderGame() {
+                const gameContainer = document.getElementById('memory-game-container');
+                const movesElement = document.getElementById('moves-counter');
+                const pairsElement = document.getElementById('pairs-counter');
+                const gameCompleteElement = document.getElementById('game-complete');
+                if (movesElement) movesElement.textContent = moves;
+                if (pairsElement) pairsElement.textContent = matchedPairs.length + '/' + gameData.pairs.length;
+                if (gameContainer) {
+                    gameContainer.innerHTML = '';
+                    shuffledCards.forEach(card => {
+                        const cardElement = document.createElement('div');
+                        cardElement.className = 'memory-card ' + (card.isMatched ? 'matched' : card.isFlipped ? (card.type === 'term' ? 'flipped-term' : 'flipped-definition') : 'hidden');
+                        cardElement.onclick = () => handleCardClick(card.id);
+                        const contentElement = document.createElement('div');
+                        contentElement.className = 'card-content';
+                        contentElement.textContent = card.isFlipped || card.isMatched ? card.content : '';
+                        cardElement.appendChild(contentElement);
+                        gameContainer.appendChild(cardElement);
+                    });
+                }
+                if (gameCompleteElement) {
+                    if (matchedPairs.length === gameData.pairs.length) {
+                        if (!gameEndTime) {
+                            gameEndTime = new Date();
+                            updateReportButton();
+                        }
+                        gameCompleteElement.style.display = 'block';
+                    } else {
+                        gameCompleteElement.style.display = 'none';
+                    }
+                }
+            }
+            
+            function handleCardClick(cardId) {
+                const card = shuffledCards.find(c => c.id === cardId);
+                if (flippedCards.length === 2 || card.isFlipped || card.isMatched) return;
+                card.isFlipped = true;
+                flippedCards.push(cardId);
+                renderGame();
+                if (flippedCards.length === 2) {
+                    moves++;
+                    const [firstCardId, secondCardId] = flippedCards;
+                    const firstCard = shuffledCards.find(c => c.id === firstCardId);
+                    const secondCard = shuffledCards.find(c => c.id === secondCardId);
+                    if (firstCard && secondCard && firstCard.pairId === secondCard.pairId) {
+                        setTimeout(() => {
+                            firstCard.isMatched = true;
+                            secondCard.isMatched = true;
+                            matchedPairs.push(firstCard.pairId);
+                            flippedCards = [];
+                            renderGame();
+                        }, 1000);
+                    } else {
+                        setTimeout(() => {
+                            if (firstCard) firstCard.isFlipped = false;
+                            if (secondCard) secondCard.isFlipped = false;
+                            flippedCards = [];
+                            renderGame();
+                        }, 1500);
+                    }
+                }
+            }
+            
+            window.restartGame = function() {
+                const gameCards = [];
+                gameData.pairs.forEach((pair, index) => {
+                    gameCards.push({ id: 'term-' + index, content: pair.term, type: 'term', pairId: index, isFlipped: false, isMatched: false });
+                    gameCards.push({ id: 'definition-' + index, content: pair.definition, type: 'definition', pairId: index, isFlipped: false, isMatched: false });
+                });
+                shuffledCards = shuffleArray(gameCards);
+                flippedCards = [];
+                matchedPairs = [];
+                moves = 0;
+                gameStartTime = new Date();
+                gameEndTime = null;
+                renderGame();
+            };
+            
+            renderGame();
+        }
+
+        function answerQuiz(questionIndex, optionIndex) {
+            if (quizAnswers[questionIndex] !== undefined) return;
+            const question = shuffledQuizData[questionIndex];
+            const isCorrect = optionIndex === question.correct_answer;
+            quizAnswers[questionIndex] = { selected: optionIndex, correct: question.correct_answer, isCorrect: isCorrect };
+            if (isCorrect) quizScore++;
+            const questionElement = document.getElementById('question-' + questionIndex);
+            const buttons = questionElement.querySelectorAll('.quiz-option');
+            buttons.forEach((button, idx) => {
+                button.disabled = true;
+                if (idx === optionIndex) {
+                    button.className = 'quiz-option ' + (isCorrect ? 'correct' : 'incorrect');
+                } else if (idx === question.correct_answer) {
+                    button.className = 'quiz-option correct-answer';
+                } else {
+                    button.className = 'quiz-option disabled';
+                }
+            });
+            const explanationElement = questionElement.querySelector('.explanation');
+            if (explanationElement) { explanationElement.style.display = 'block'; }
+            updateReportButton();
+        }
+
+        function updateReportButton() {
+            const reportButton = document.getElementById('report-button');
+            let memoryGameCompleted = false;
+            if (APP_DATA.memory_game) {
+                const gameCompleteElement = document.getElementById('game-complete');
+                memoryGameCompleted = gameCompleteElement && gameCompleteElement.style.display === 'block';
+            } else {
+                memoryGameCompleted = true;
+            }
+            let quizCompleted = false;
+            if (APP_DATA.quiz && APP_DATA.quiz.length > 0) {
+                quizCompleted = Object.keys(quizAnswers).length === shuffledQuizData.length;
+            } else {
+                quizCompleted = true;
+            }
+            if (reportButton && memoryGameCompleted && quizCompleted) {
+                reportButton.style.display = 'block';
+                document.getElementById('report-button-desc').style.display = 'none';
+            }
+        }
+
+        function calculateMemoryGameScore(moves) {
+            if (moves >= 6 && moves <= 8) return 5;
+            if (moves >= 9 && moves <= 12) return 4;
+            if (moves >= 13 && moves <= 15) return 3;
+            if (moves >= 16) return 2;
+            return 0;
+        }
+
+        function generateReport() {
+            const gameTime = gameEndTime && gameStartTime ? Math.round((gameEndTime - gameStartTime) / 1000) : 0;
+            const movesElement = document.getElementById('moves-counter');
+            const movesText = movesElement ? movesElement.textContent : '0';
+            const moves = parseInt(movesText) || 0;
+            const scenarioReport = document.getElementById('scenario-report-textarea').value;
+            const contentTitle = APP_DATA.title;
+            const quizItems = shuffledQuizData;
+            const quizPoints = Math.min(quizScore, 5);
+            let memoryGamePoints = 0;
+            if (APP_DATA.memory_game && gameEndTime) {
+                memoryGamePoints = calculateMemoryGameScore(moves);
+            }
+            const finalScore = quizPoints + memoryGamePoints;
+            let reportContent = '<div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px;">';
+            reportContent += '<div style="text-align: center; border-bottom: 3px solid #2563eb; padding-bottom: 20px; margin-bottom: 30px;">';
+            reportContent += '<h1 style="color: #1f2937; margin-bottom: 10px;">Relatório de Atividades - AulaGenius</h1>';
+            reportContent += '<h2 style="color: #2563eb; margin-bottom: 5px;">' + contentTitle + '</h2>';
+            reportContent += '<p style="color: #6b7280;">Data: ' + new Date().toLocaleDateString('pt-BR') + ' às ' + new Date().toLocaleTimeString('pt-BR') + '</p>';
+            reportContent += '</div>';
+            reportContent += '<div style="margin-bottom: 30px;">';
+            reportContent += '<h3 style="color: #1f2937; margin-bottom: 15px;">👤 Informações do Aluno</h3>';
+            reportContent += '<p style="font-size: 18px;"><strong>Nome:</strong> ' + escapeClientHtml(studentName) + '</p>';
+            reportContent += '<p style="font-size: 18px;"><strong>Registro de Aluno (RA):</strong> ' + escapeClientHtml(studentId) + '</p>';
+            reportContent += '</div>';
+            if (APP_DATA.memory_game) {
+                reportContent += '<div style="margin-bottom: 30px;">';
+                reportContent += '<h3 style="color: #1f2937; margin-bottom: 15px;">🎮 Jogo da Memória</h3>';
+                reportContent += '<p><strong>Movimentos realizados:</strong> ' + moves + '</p>';
+                reportContent += '<p><strong>Tempo gasto:</strong> ' + gameTime + ' segundos</p>';
+                reportContent += '<p><strong>Status:</strong> ' + (gameEndTime ? '✅ Concluído' : '❌ Não Concluído') + '</p>';
+                reportContent += '<p><strong>Pontuação:</strong> ' + memoryGamePoints + '/5 pontos</p>';
+                reportContent += '</div>';
+            }
+            if (APP_DATA.quiz && APP_DATA.quiz.length > 0) {
+                reportContent += '<div style="margin-bottom: 30px;">';
+                reportContent += '<h3 style="color: #1f2937; margin-bottom: 15px;">📝 Quiz</h3>';
+                reportContent += '<p><strong>Acertos:</strong> ' + quizScore + '/' + quizItems.length + '</p>';
+                reportContent += '<p><strong>Pontuação:</strong> ' + quizPoints + '/5 pontos</p>';
+                reportContent += '<div style="margin-top: 15px;">';
+                quizItems.forEach((item, index) => {
+                    const answer = quizAnswers[index];
+                    if (answer) {
+                        const selectedOptionText = item.options[answer.selected] || 'Não respondida';
+                        reportContent += '<div style="margin-bottom: 15px; padding: 10px; background: #f9fafb; border-radius: 5px; border: 1px solid #e5e7eb;">';
+                        reportContent += '<p style="margin-bottom: 5px;"><strong>Pergunta ' + (index + 1) + ':</strong> ' + escapeClientHtml(item.question) + '</p>';
+                        reportContent += '<p style="margin-bottom: 5px;"><strong>Resposta escolhida:</strong> ' + escapeClientHtml(selectedOptionText) + '</p>';
+                        reportContent += '<p style="margin-bottom: 5px;"><strong>Status:</strong> ' + (answer.isCorrect ? '✅ Correto' : '❌ Incorreto') + '</p>';
+                        reportContent += '<p style="margin-top: 10px; font-style: italic; color: #6b7280;"><strong>Explicação:</strong> ' + escapeClientHtml(item.explanation || 'N/A') + '</p>';
+                        reportContent += '</div>';
+                    }
+                });
+                reportContent += '</div></div>';
+            }
+            if (scenarioReport.trim() !== '') {
+                reportContent += '<div style="margin-bottom: 30px;">';
+                reportContent += '<h3 style="color: #1f2937; margin-bottom: 15px;">📄 Análise de Cenário</h3>';
+                reportContent += '<p style="background: #f9fafb; padding: 15px; border-radius: 5px; border: 1px solid #e5e7eb; white-space: pre-wrap;">' + escapeClientHtml(scenarioReport) + '</p>';
+                reportContent += '</div>';
+            }
+            reportContent += '<div style="margin-bottom: 30px; padding: 20px; background: #f3f4f6; border-radius: 10px; border: 1px solid #d1d5db;">';
+            reportContent += '<h3 style="color: #1f2937; margin-bottom: 15px;">📊 Sistema de Pontuação:</h3>';
+            reportContent += '<p style="margin-bottom: 10px;"><strong>Quiz:</strong> Cada pergunta vale 1 ponto (máximo 5 pontos)</p>';
+            reportContent += '<p style="margin-bottom: 5px;"><strong>Jogo da Memória:</strong> Baseado no número de movimentos (máximo 5 pontos):</p>';
+            reportContent += '<ul style="margin-left: 20px; color: #4b5563;">';
+            reportContent += '<li>6-8 movimentos: 5 pontos</li>';
+            reportContent += '<li>9-12 movimentos: 4 pontos</li>';
+            reportContent += '<li>13-15 movimentos: 3 pontos</li>';
+            reportContent += '<li>16+ movimentos: 2 pontos</li>';
+            reportContent += '</ul></div>';
+            reportContent += '<div style="margin-bottom: 30px; padding: 20px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 10px; text-align: center; color: white;">';
+            reportContent += '<h2 style="color: white; margin-bottom: 10px; font-size: 24px;">⭐ Nota final da avaliação deste conteúdo:</h2>';
+            reportContent += '<p style="font-size: 36px; font-weight: bold; margin: 0;">' + finalScore + '/10</p>';
+            let performance = '';
+            let performanceColor = '';
+            if (finalScore >= 9) { performance = '🏆 Excelente'; performanceColor = '#10b981';
+            } else if (finalScore >= 7) { performance = '👏 Muito Bom'; performanceColor = '#3b82f6';
+            } else if (finalScore >= 5) { performance = '👍 Bom'; performanceColor = '#f59e0b';
+            } else { performance = '📚 Precisa Estudar Mais'; performanceColor = '#ef4444'; }
+            reportContent += '<p style="font-size: 18px; margin-top: 10px; color: ' + performanceColor + '; font-weight: bold;">' + performance + '</p></div>';
+            reportContent += '<div style="text-align: center; margin-top: 40px; padding-top: 20px; border-top: 1px solid #e5e7eb;">';
+            reportContent += '<p style="color: #6b7280; font-size: 14px;">Relatório gerado automaticamente pelo AulaGenius</p>';
+            reportContent += '</div></div>';
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write('<!DOCTYPE html><html><head><title>Relatório - ' + studentName + '</title><meta charset="UTF-8"><style>@media print { body { margin: 0; } @page { margin: 1cm; } }</style></head><body>' + reportContent + '</body></html>');
+            printWindow.document.close();
+            printWindow.print();
+        }
+    </script>
+
+    <div id="name-modal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 1rem; color: #1f2937;">Bem-vindo!</h3>
+            <p style="margin-bottom: 1rem; color: #6b7280;">Preencha seus dados para começar:</p>
+            <input type="text" id="student-name" placeholder="Seu nome completo" maxlength="50">
+            <input type="text" id="student-id" placeholder="Seu registro de aluno (RA)" maxlength="20">
+            <button onclick="startGame()">Começar Atividades</button>
+        </div>
+    </div>
+    <div class="container">
+        <div class="header"><h1>INTRODUÇÃO AOS PROCESSOS DE FABRICAÇÃO</h1><p>Material de Estudo - AulaGenius</p></div>
+        
+      <div class="section">
+        <div class="section-header"> 
+          <div class="section-number">1</div> 
+          <h2 class="section-title">Introdução e Definição</h2> 
+        </div>
+        <div class="section-content">Os processos de fabricação são métodos essenciais para transformar matérias-primas em produtos acabados com formas, dimensões e propriedades específicas. Eles são a base da produção industrial moderna e a escolha do processo depende do material, geometria desejada, propriedades mecânicas, custo e escala de produção.</div>
+      </div>
+    
+      <div class="section">
+        <div class="section-header"> 
+          <div class="section-number">2</div> 
+          <h2 class="section-title">Critérios de Classificação</h2> 
+        </div>
+        <div class="section-content">A diversidade de métodos na indústria justifica a classificação dos processos. Os principais critérios incluem: tipo de processo (técnica de moldagem), tipo de energia envolvida (mecânica, térmica ou mista), temperatura de trabalho (ambiente, elevada ou intermediária) e tensão de trabalho (deformação plástica ou remoção de material).</div>
+      </div>
+    
+      <div class="section">
+        <div class="section-header"> 
+          <div class="section-number">3</div> 
+          <h2 class="section-title">As Cinco Famílias Básicas de Processos</h2> 
+        </div>
+        <div class="section-content">Os processos de fabricação mais comuns são agrupados em cinco grandes famílias: Conformação Mecânica (altera forma sem remover matéria), Fundição (moldagem de material líquido), Soldagem (união permanente por calor), Metalurgia do Pó (compactação e sinterização de pós) e Usinagem (remoção de material por corte).</div>
+      </div>
+    
+      <div class="section">
+        <div class="section-header"> 
+          <div class="section-number">4</div> 
+          <h2 class="section-title">Usinagem: Com e Sem Remoção de Cavaco</h2> 
+        </div>
+        <div class="section-content">A usinagem pode remover material (com cavaco), como torneamento e fresamento, ou modificar a peça sem remoção significativa (sem cavaco), usando energia física, química ou eletromagnética, como eletroerosão e jato abrasivo. Processos convencionais incluem torneamento, fresamento e furação, enquanto os não convencionais, como jato d&#039;água e laser, são para alta precisão e materiais especiais.</div>
+      </div>
+    
+      <div class="section">
+        <div class="section-header"> 
+          <div class="section-number">5</div> 
+          <h2 class="section-title">Fundição: Formando Peças a Partir do Metal Líquido</h2> 
+        </div>
+        <div class="section-content">A fundição é um processo antigo onde o metal é aquecido até o estado líquido e vertido em moldes. As técnicas incluem fundição em areia, sob pressão e em coquilha. Permite a fabricação de peças complexas e em grandes quantidades, sendo comum em indústrias como a automotiva e da construção.</div>
+      </div>
+    
+      <div class="section">
+        <div class="section-header"> 
+          <div class="section-number">6</div> 
+          <h2 class="section-title">Soldagem: União de Componentes por Fusão</h2> 
+        </div>
+        <div class="section-content">A soldagem é fundamental para a montagem de estruturas metálicas, unindo permanentemente partes por aplicação de calor. Tipos comuns incluem soldagem por arco elétrico (MIG, TIG), por resistência elétrica (calor gerado pela corrente) e por fricção ou ultrassom (calor gerado por atrito/vibração).</div>
+      </div>
+    
+      <div class="section">
+        <div class="section-header"> 
+          <div class="section-number">7</div> 
+          <h2 class="section-title">Trabalho a Frio e Trabalho a Quente</h2> 
+        </div>
+        <div class="section-content">Processos podem ser realizados a frio (abaixo da temperatura de recristalização), aumentando a resistência mecânica mas reduzindo a ductilidade (ex: laminação a frio), ou a quente (acima da temperatura de recristalização), permitindo maiores deformações com menor esforço e mantendo boa resistência (ex: forjamento a quente).</div>
+      </div>
+    
+      <div class="section">
+        <div class="section-header"> 
+          <div class="section-number">8</div> 
+          <h2 class="section-title">Classificação pela Energia e Tensão de Trabalho</h2> 
+        </div>
+        <div class="section-content">Os processos são classificados pela energia envolvida (mecânica, metalúrgica/térmica, intermediária) e pela tensão de trabalho. A deformação plástica ocorre quando a tensão é menor que a de ruptura, mantendo a integridade do material (ex: forjamento). A remoção metálica ocorre quando a tensão supera a de ruptura, separando o material (ex: usinagem).</div>
+      </div>
+    
+        
+      <div class="section summary-section">
+        <div class="section-header"> 
+          <div class="section-number">★</div> 
+          <h2 class="section-title">Principais Pontos Sobre Processos de Fabricação</h2> 
+        </div>
+        <div class="section-content"> 
+          <ul><li>Processos de fabricação transformam matérias-primas em produtos acabados, sendo classificados por critérios como tipo, energia, temperatura e tensão de trabalho.</li><li>As cinco famílias básicas de processos são: Conformação Mecânica, Fundição, Soldagem, Metalurgia do Pó e Usinagem.</li><li>Usinagem pode envolver remoção de material (com cavaco) ou ser não convencional (sem cavaco), enquanto fundição molda metal líquido e soldagem une componentes por fusão.</li><li>O trabalho pode ser a frio (aumenta resistência, reduz ductilidade) ou a quente (permite grandes deformações, mantém boa resistência).</li></ul> 
+        </div>
+      </div>
+    
+        
+      <div class="section memory-game-section">
+        <div class="section-header"> 
+          <div class="section-number">🎮</div> 
+          <h2 class="section-title">Termos Chave dos Processos de Fabricação</h2> 
+        </div>
+        <div class="section-content">
+          <div class="student-info">Aluno: <span id="student-display">-</span></div>
+          <p style="margin-bottom:1rem;"><strong>Como jogar:</strong> Encontre os pares corretos entre os termos e suas definições.</p>
+          <div class="memory-game-controls">
+            <div class="game-stats"> 
+              <span>Movimentos: <span id="moves-counter">0</span></span> | 
+              <span>Pares: <span id="pairs-counter">0/6</span></span> 
+            </div>
+            <button class="restart-btn" onclick="restartGame()">🔄 Reiniciar</button>
+          </div>
+          <div class="game-complete" id="game-complete">🎉 Parabéns! Você completou o jogo!</div>
+          <div class="memory-game-grid" id="memory-game-container"></div>
+        </div>
+      </div>
+    
+        
+      <div class="section">
+        <div class="section-header"> 
+          <div class="section-number">📚</div> 
+          <h2 class="section-title">Bibliografia</h2> 
+        </div>
+        <div class="section-content">CHAVES, A. P. Tecnologia da Fabricação Mecânica. Edgard Blücher, 2010. AMARAL, D. C. Processos de Fabricação. Pearson Education, 2014. FERREIRA, S. L. Fundamentos dos Processos de Fabricação. LTC, 2016. KALPAKJIAN, S.; SCHMID, S. Manufacturing Processes for Engineering Materials. Pearson, 2013.</div>
+      </div>
+    
+        
+      <div class="section quiz-section">
+        <div class="section-header"> 
+          <div class="section-number">❓</div> 
+          <h2 class="section-title">Quiz Interativo</h2> 
+        </div>
+        <div class="section-content" id="quiz-container">
+          <p style="margin-bottom:1rem;"><strong>Instruções:</strong> Clique na resposta correta. As perguntas e respostas são embaralhadas a cada vez que o material é aberto.</p>
+        </div>
+      </div>
+    
+        
+      <div class="section activity-section">
+        <div class="section-header">
+          <div class="section-number">⚡</div>
+          <h2 class="section-title">Analisando Produtos: Processos de Fabricação em Ação</h2>
+        </div>
+        <div class="section-content">
+          <div><h3 style="margin-bottom:0.5rem; font-weight:bold;">Descrição:</h3><p>Nesta atividade, os alunos irão aplicar os conhecimentos adquiridos sobre os processos de fabricação para analisar um produto do dia a dia, identificando quais tipos de processos podem ter sido utilizados em sua manufatura.</p></div>
+          <div style="margin-top:1rem;"><h3 style="margin-bottom:0.5rem; font-weight:bold;">Instruções:</h3><div>1. Escolha um objeto comum ao seu redor (ex: uma caneta, uma colher, um clipe de papel, um brinquedo simples).<br>2. Observe atentamente o objeto e suas características (forma, material, união de partes).<br>3. Com base nas cinco famílias básicas de processos de fabricação (conformação mecânica, fundição, soldagem, metalurgia do pó, usinagem), tente identificar pelo menos dois processos que podem ter sido utilizados para fabricar as diferentes partes ou o objeto como um todo.<br>4. Explique brevemente o porquê você acredita que esses processos foram utilizados, relacionando com as características do objeto (ex: &quot;A parte metálica da caneta parece ter sido conformada por extrusão devido à sua forma cilíndrica e contínua&quot;).<br>5. Se possível, pesquise sobre o processo de fabricação real do objeto escolhido para comparar suas hipóteses.</div></div>
+          <div style="margin-top:1rem;"><h3 style="margin-bottom:0.5rem; font-weight:bold;">Resultado Esperado:</h3><p>Os alunos serão capazes de relacionar os conceitos teóricos dos processos de fabricação com objetos reais, desenvolvendo a capacidade de análise e aplicação prática do conhecimento. Eles deverão apresentar suas hipóteses e justificativas de forma clara.</p></div>
+          <div style="margin-top:2rem;">
+            <h3 style="margin-bottom:0.5rem; font-weight:bold;">Seu Relatório:</h3>
+            <p style="margin-bottom:1rem; font-size:0.875rem; color:#6b7280;">Escreva seu relatório conciso (aproximadamente 200-300 palavras) aqui. Ele será incluído na sua folha de impressão.</p>
+            <textarea id="scenario-report-textarea" rows="10" placeholder="Comece a digitar sua análise aqui..." style="width:100%; padding:0.75rem; border:1px solid #d1d5db; border-radius:0.375rem; font-family:inherit; font-size:1rem;"></textarea>
+          </div>
+        </div>
+      </div>
+    
+        <div class="report-section">
+            <button id="report-button" class="report-button" onclick="generateReport()">📊 Gerar Relatório para Impressão</button>
+            <p id="report-button-desc">Complete o jogo da memória e o quiz para gerar seu relatório de atividades.</p>
+        </div>
+        <div class="text-center" style="margin-top: 4rem; padding-top: 2rem; border-top: 1px solid #e5e7eb; color: #6b7280; font-size: 0.875rem;"> <p>Material gerado por AulaGenius</p> </div>
+    </div>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            showNameModal();
+            updateReportButton();
+            document.getElementById('student-name').addEventListener('keydown', function(e) { 
+                if(e.key === 'Enter') document.getElementById('student-id').focus(); 
+            });
+            document.getElementById('student-id').addEventListener('keydown', function(e) { 
+                if(e.key === 'Enter') startGame(); 
+            });
+        });
+    </script>
+</body>
+</html>
